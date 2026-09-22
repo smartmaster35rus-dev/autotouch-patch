@@ -38,7 +38,7 @@ if ($Status) {
 }
 
 if (-not (git remote | Select-String -Pattern "^origin$")) {
-    gh repo create $RemoteName --public --source=. --remote=origin --description "Patched AutoTouch .deb for jailbroken iOS (arm64, rootless)"
+    gh repo create $RemoteName --public --source=. --remote=origin --description 'Patched AutoTouch .deb for jailbroken iOS arm64 rootless'
 } else {
     git push -u origin main
 }
