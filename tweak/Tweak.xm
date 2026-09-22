@@ -55,7 +55,7 @@
 - (void)alertForProVersion { return; }
 - (id)getLicense { return @{@"licensed":@YES, @"valid":@YES, @"expired":@NO}; }
 - (void)startLicenseLimitTimer { return; }
-- (void)init { %orig; }
+- (id)init { return %orig; }
 %end
 
 %hook JSEngine
