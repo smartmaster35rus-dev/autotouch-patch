@@ -48,12 +48,10 @@ CRACK_HOOK_LICENSE(Global)
 + (void)setupTimer { return; }
 + (void)licenseLimitTimeout { return; }
 + (void)alertForProVersion { return; }
-+ (void)stop { /* allow scripts */ }
 %end
 
 %hook PlayingManager_932730
 - (void)stopAllPlayings { return; }
-- (BOOL)hasAnyPlaying { return %orig; }
 %end
 
 %ctor {
