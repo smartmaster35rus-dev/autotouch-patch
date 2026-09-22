@@ -12,6 +12,17 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+@interface CommandServer_907239 : NSObject
+@end
+@interface Global_983499 : NSObject
+@end
+@interface Global : NSObject
+@end
+@interface JSEngine : NSObject
+@end
+@interface PlayingManager_932730 : NSObject
+@end
+
 #define CRACK_HOOK_LICENSE(ClassName) \
     %hook ClassName \
     - (void)setupTimer_240358 { return; } \

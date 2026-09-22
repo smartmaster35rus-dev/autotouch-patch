@@ -12,9 +12,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#define CRACK_NOOP \
-    %orig; \
-    return;
+@interface CommandServer_907239 : NSObject
+@end
+@interface Global_983499 : NSObject
+@end
+@interface Global : NSObject
+@end
+@interface JSEngine : NSObject
+@end
+@interface PlayingManager_932730 : NSObject
+@end
 
 #define CRACK_HOOK_LICENSE(ClassName) \
     %hook ClassName \
