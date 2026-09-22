@@ -1,0 +1,27 @@
+# Local build artifacts
+arm64/
+new/
+old/
+*.extracted/
+analyze.py
+find_class.py
+check_arch.py
+me.autotouch.autotouch.ios8_*.deb
+!releases/*.deb
+
+# Original unpatched packages (download separately)
+*_unpatched.deb
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Keep releases/ and patch/ tracked intentionally
