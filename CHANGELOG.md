@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.5.5-v3] - 2026-09-22
+
+### Fixed
+- **Auto-launch license alert** — hook `validateLicense_108147`, `_validateLicense_108147`, `_validateLicenseFromKey_565433`
+- **Wrong obfuscated selector** — `stopAllPlayings_309465` (was ineffective `stopAllPlayings`)
+- **License UI fallback** — block `Alert showAlert:` for license strings
+- **`isLicensed` / `licensed`** on `CommandServer_907239` and `Global_983499`
+
 ## [8.5.5-v2] - 2026-09-22
 
 ### Fixed

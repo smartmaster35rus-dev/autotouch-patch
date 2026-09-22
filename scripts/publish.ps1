@@ -17,7 +17,7 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 }
 
 $RemoteName = "smartmaster35rus-dev/autotouch-patch"
-$Tag = "v8.5.5-v2"
+$Tag = "v8.5.5-v3"
 $Deb = "releases/me.autotouch.autotouch.ios8_8.5.5_iphoneos-arm64_patched.deb"
 
 if (-not (Test-Path $Deb)) {
