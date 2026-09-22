@@ -2,10 +2,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
-BOOL validateLicense_108147(id *errorOut);
-BOOL _validateLicense_108147(id *errorOut);
-BOOL _validateLicenseFromKey_565433(id key);
+#import <substrate.h>
+#include <dlfcn.h>
 
 @interface CommandServer_907239 : NSObject
 @end
@@ -17,6 +15,37 @@ BOOL _validateLicenseFromKey_565433(id key);
 @end
 @interface Alert : NSObject
 @end
+
+static BOOL (*orig_validateLicense_108147)(id *errorOut);
+static BOOL (*orig__validateLicense_108147)(id *errorOut);
+static BOOL (*orig__validateLicenseFromKey_565433)(id key);
+
+static BOOL replaced_validateLicense_108147(id *errorOut) {
+    return YES;
+}
+
+static BOOL replaced__validateLicenseFromKey_565433(id key) {
+    return YES;
+}
+
+static void install_validate_hooks(void) {
+    void *sym;
+
+    sym = dlsym(RTLD_DEFAULT, "validateLicense_108147");
+    if (sym && sym != (void *)replaced_validateLicense_108147) {
+        MSHookFunction(sym, (void *)replaced_validateLicense_108147, (void **)&orig_validateLicense_108147);
+    }
+
+    sym = dlsym(RTLD_DEFAULT, "_validateLicense_108147");
+    if (sym && sym != (void *)replaced_validateLicense_108147) {
+        MSHookFunction(sym, (void *)replaced_validateLicense_108147, (void **)&orig__validateLicense_108147);
+    }
+
+    sym = dlsym(RTLD_DEFAULT, "_validateLicenseFromKey_565433");
+    if (sym && sym != (void *)replaced__validateLicenseFromKey_565433) {
+        MSHookFunction(sym, (void *)replaced__validateLicenseFromKey_565433, (void **)&orig__validateLicenseFromKey_565433);
+    }
+}
 
 %hook CommandServer_907239
 - (void)setupTimer_240358 { return; }
@@ -42,18 +71,6 @@ BOOL _validateLicenseFromKey_565433(id key);
 - (void)stopAllPlayings_309465 { return; }
 %end
 
-%hookf(BOOL, validateLicense_108147, id *errorOut) {
-    return YES;
-}
-
-%hookf(BOOL, _validateLicense_108147, id *errorOut) {
-    return YES;
-}
-
-%hookf(BOOL, _validateLicenseFromKey_565433, id key) {
-    return YES;
-}
-
 %hook Alert
 + (void)showAlert:(id)message {
     if ([message isKindOfClass:[NSString class]]) {
@@ -75,5 +92,9 @@ BOOL _validateLicenseFromKey_565433(id key);
 %end
 
 %ctor {
+    install_validate_hooks();
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        install_validate_hooks();
+    });
     NSLog(@"[crackATT v2.1] loaded for AutoTouch 8.5.5");
 }
