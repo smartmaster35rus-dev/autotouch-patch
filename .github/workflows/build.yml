@@ -1,0 +1,44 @@
+name: Build crackATT v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tweak/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      THEOS: /Users/runner/theos
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Theos and SDK
+        run: |
+          git clone --depth=1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth=1 https://github.com/theos/sdks.git /tmp/theos-sdks
+          mv /tmp/theos-sdks/*.sdk "$THEOS/sdks/"
+
+      - name: Build tweak
+        run: |
+          cd tweak
+          make clean 2>/dev/null || true
+          make
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          DYLIB=$(find tweak/.theos -name 'crackATT.dylib' -type f | head -1)
+          test -n "$DYLIB" || (find tweak/.theos && exit 1)
+          cp "$DYLIB" dist/crackATT.dylib
+          cp tweak/crackATT.plist dist/crackATT.plist
+          file dist/crackATT.dylib
+          ls -la dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crackATT-v2
+          path: dist/

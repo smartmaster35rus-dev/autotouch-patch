@@ -6,7 +6,7 @@ set -euo pipefail
 
 REPO="smartmaster35rus-dev/autotouch-patch"
 BRANCH="main"
-VERSION="8.5.5"
+VERSION="8.5.5-v2"
 PKG="me.autotouch.autotouch.ios8"
 DEB="${PKG}_${VERSION}_iphoneos-arm64_patched.deb"
 

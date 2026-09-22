@@ -115,14 +115,15 @@ autotouch-patch/
 
 ## 🔧 Как работает патч
 
-Добавляется MobileSubstrate-твик **`crackATT`**, перехватывающий методы класса `Global`:
+Добавляется MobileSubstrate-твик **`crackATT v2`**, перехватывающий цепочку лицензии AutoTouch 8.5.5:
 
-| Метод | Эффект |
-|-------|--------|
-| `licenseLimitTimeout` | Блокирует таймер ограничения |
-| `startLicenseLimitTimer` | Не запускает таймер лимита |
-| `init` | Перехват инициализации |
-| `objectFromJSONString` | Обход проверки JSON лицензии |
+| Класс | Методы | Эффект |
+|-------|--------|--------|
+| `CommandServer_907239` | `setupTimer_240358`, `licenseLimitTimeout_120300`, `check_929132` | Блокирует 120-сек таймер и async-проверку |
+| `Global_983499` | `setupTimer_167855`, `licenseLimitTimeout_552565` | Блокирует второй 120-сек таймер |
+| `JSEngine` | `alertForProVersion` | Не показывает «License Required» и не останавливает движок |
+| `PlayingManager_932730` | `stopAllPlayings` | Скрипты не принудительно останавливаются |
+| `Global` (legacy) | `licenseLimitTimeout`, `init`, … | Совместимость с 7.x |
 
 **Filter** (`crackATT.plist`):
 

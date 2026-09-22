@@ -17,7 +17,7 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 }
 
 $RemoteName = "smartmaster35rus-dev/autotouch-patch"
-$Tag = "v8.5.5"
+$Tag = "v8.5.5-v2"
 $Deb = "releases/me.autotouch.autotouch.ios8_8.5.5_iphoneos-arm64_patched.deb"
 
 if (-not (Test-Path $Deb)) {
@@ -34,7 +34,7 @@ git status --short
 
 $Status = git status --porcelain
 if ($Status) {
-    git commit -m "Release AutoTouch 8.5.5 arm64 patch"
+    git commit -m "Release AutoTouch 8.5.5 v2 arm64 patch (fix 2-min license timeout)"
 }
 
 if (-not (git remote | Select-String -Pattern "^origin$")) {
@@ -49,8 +49,8 @@ git push origin main
 gh release upload $Tag $Deb --clobber 2>$null
 if ($LASTEXITCODE -ne 0) {
     gh release create $Tag $Deb `
-        --title "AutoTouch 8.5.5 Patched (arm64)" `
-        --notes "Patched AutoTouch 8.5.5 for jailbroken iOS arm64 rootless. Install: curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patch/main/scripts/install.sh | bash"
+        --title "AutoTouch 8.5.5 Patched v2 (arm64)" `
+        --notes "crackATT v2 — fixes 2-minute license timeout in AutoTouch 8.5.5. Hooks CommandServer_907239, Global_983499, JSEngine, PlayingManager_932730. Install: curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patch/main/scripts/install.sh | bash"
 }
 
 Write-Host "[+] Published: https://github.com/$RemoteName" -ForegroundColor Green
