@@ -18,7 +18,8 @@ jobs:
 
       - name: Setup Theos and SDK
         run: |
-          git clone --depth=1 https://github.com/theos/theos.git "$THEOS"
+          git clone --recursive --depth=1 https://github.com/theos/theos.git "$THEOS"
+          "$THEOS/bin/update-theos"
           git clone --depth=1 https://github.com/theos/sdks.git /tmp/theos-sdks
           mv /tmp/theos-sdks/*.sdk "$THEOS/sdks/"
 
