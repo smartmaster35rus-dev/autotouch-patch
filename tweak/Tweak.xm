@@ -3,6 +3,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+BOOL validateLicense_108147(id *errorOut);
+BOOL _validateLicense_108147(id *errorOut);
+BOOL _validateLicenseFromKey_565433(id key);
+
 @interface CommandServer_907239 : NSObject
 @end
 @interface Global_983499 : NSObject
