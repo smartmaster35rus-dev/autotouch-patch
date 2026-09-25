@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.5.5-v3.3] - 2026-09-25
+
+### Fixed
+- **2-minute stop + dialogs** — block `JSEngine setupTimer`, `licenseLimitTimeout`, and `alertForProVersion` (AutoTouch License Required)
+- **CommandServer / Global** — noop `outputLicenseTimeout`, force `licenseTimeout` → NO
+- **PlayingManager** — hook both `stopAllPlayings` and obfuscated `stopAllPlayings_309465`
+- **Alert filter** — broader license strings (auto-launch: “License is needed to launch script automatically.”)
+
+### Unchanged from v3.2
+- Settings **Licensed** UI (`ATTweakClient`, `SettingsViewController`, `_downloadLicenseSynchronously`)
+- `validateLicense` MSHookFunction chain, CommandServer/Global timer hooks from v3
+- `crackATT.plist` injects **backboardd** + SpringBoard; install scripts use **`ldrestart`**
+
 ## [8.5.5-v3] - 2026-09-22
 
 ### Fixed
