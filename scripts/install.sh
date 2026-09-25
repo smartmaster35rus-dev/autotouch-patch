@@ -34,8 +34,14 @@ dpkg -r "$PKG" >/dev/null 2>&1 || true
 echo "[*] Installing ${DEB}..."
 dpkg -i "$DEB"
 
-echo "[*] Respringing SpringBoard..."
-killall -9 SpringBoard 2>/dev/null || sbreload 2>/dev/null || uicache -a 2>/dev/null || true
+echo "[*] Restarting tweak injection (backboardd + SpringBoard)..."
+if command -v ldrestart >/dev/null 2>&1; then
+  ldrestart
+elif command -v sbreload >/dev/null 2>&1; then
+  sbreload
+else
+  killall -9 backboardd SpringBoard 2>/dev/null || true
+fi
 
 echo "[+] Done. AutoTouch ${VERSION} (patched) installed."
 rm -f "$DEB"

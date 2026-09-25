@@ -6,6 +6,7 @@
 	<dict>
 		<key>Bundles</key>
 		<array>
+			<string>com.apple.backboardd</string>
 			<string>com.apple.springboard</string>
 			<string>me.autotouch.AutoTouch.ios8</string>
 		</array>

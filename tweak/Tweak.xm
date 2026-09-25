@@ -1,4 +1,4 @@
-// crackATT v2.1 for AutoTouch 8.5.5
+// crackATT v3.2 for AutoTouch 8.5.5
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -15,10 +15,21 @@
 @end
 @interface Alert : NSObject
 @end
+@interface ATTweakClient : NSObject
+@end
+@interface SettingsViewController : UIViewController
+@end
 
 static BOOL (*orig_validateLicense_108147)(id *errorOut);
 static BOOL (*orig__validateLicense_108147)(id *errorOut);
 static BOOL (*orig__validateLicenseFromKey_565433)(id key);
+static long long (*orig_downloadLicenseSynchronously_552911)(int, void **, void **);
+
+static long long replaced_downloadLicenseSynchronously_552911(int flag, void **planOut, void **errorOut) {
+    if (errorOut)
+        *errorOut = NULL;
+    return 1;
+}
 
 static BOOL replaced_validateLicense_108147(id *errorOut) {
     return YES;
@@ -44,6 +55,13 @@ static void install_validate_hooks(void) {
     sym = dlsym(RTLD_DEFAULT, "_validateLicenseFromKey_565433");
     if (sym && sym != (void *)replaced__validateLicenseFromKey_565433) {
         MSHookFunction(sym, (void *)replaced__validateLicenseFromKey_565433, (void **)&orig__validateLicenseFromKey_565433);
+    }
+
+    sym = dlsym(RTLD_DEFAULT, "_downloadLicenseSynchronously_552911");
+    if (!sym)
+        sym = dlsym(RTLD_DEFAULT, "downloadLicenseSynchronously_552911");
+    if (sym && sym != (void *)replaced_downloadLicenseSynchronously_552911) {
+        MSHookFunction(sym, (void *)replaced_downloadLicenseSynchronously_552911, (void **)&orig_downloadLicenseSynchronously_552911);
     }
 }
 
@@ -71,6 +89,23 @@ static void install_validate_hooks(void) {
 - (void)stopAllPlayings_309465 { return; }
 %end
 
+%hook ATTweakClient
+- (BOOL)downloadLicense:(NSError **)error {
+    if (error)
+        *error = nil;
+    return YES;
+}
+%end
+
+%hook SettingsViewController
+- (void)checkLicenseStatus {
+    %orig;
+    UILabel *label = [self valueForKey:@"licenseStatusLabel"];
+    if ([label isKindOfClass:[UILabel class]])
+        label.text = @"Licensed";
+}
+%end
+
 %hook Alert
 + (void)showAlert:(id)message {
     if ([message isKindOfClass:[NSString class]]) {
@@ -96,5 +131,5 @@ static void install_validate_hooks(void) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         install_validate_hooks();
     });
-    NSLog(@"[crackATT v2.1] loaded for AutoTouch 8.5.5");
+    NSLog(@"[crackATT v3.2] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
 }

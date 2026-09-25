@@ -22,7 +22,13 @@ curl -fL --progress-bar -o "$DEST/crackATT.plist" "$BASE/crackATT.plist"
 chmod 755 "$DEST/crackATT.dylib"
 chmod 644 "$DEST/crackATT.plist"
 
-echo "[*] Respringing SpringBoard..."
-killall -9 SpringBoard 2>/dev/null || sbreload 2>/dev/null || true
+echo "[*] Restarting tweak injection (backboardd + SpringBoard)..."
+if command -v ldrestart >/dev/null 2>&1; then
+  ldrestart
+elif command -v sbreload >/dev/null 2>&1; then
+  sbreload
+else
+  killall -9 backboardd SpringBoard 2>/dev/null || true
+fi
 
 echo "[+] Patch installed to $DEST"
