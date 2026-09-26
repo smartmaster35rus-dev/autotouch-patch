@@ -1,8 +1,9 @@
-// crackATT v3.3 for AutoTouch 8.5.5
+// crackATT v3.5 for AutoTouch 8.5.5 — hybrid with binary-patched ATTweak.dylib
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <substrate.h>
+#import <objc/runtime.h>
 #include <dlfcn.h>
 
 @interface CommandServer_907239 : NSObject
@@ -18,6 +19,8 @@
 @interface ATTweakClient : NSObject
 @end
 @interface SettingsViewController : UIViewController
+@end
+@interface LicenseManager : NSObject
 @end
 
 static BOOL (*orig_validateLicense_108147)(id *errorOut);
@@ -99,7 +102,32 @@ static void schedule_validate_hook_retries(void) {
     }
 }
 
+static void crack_force_licensed_ivar(id obj) {
+    if (!obj)
+        return;
+    Class cls = object_getClass(obj);
+    const char *names[] = {"_licensed", "licensed", NULL};
+    for (int i = 0; names[i]; i++) {
+        Ivar iv = class_getInstanceVariable(cls, names[i]);
+        if (iv) {
+            object_setIvar(obj, iv, (__bridge id)kCFBooleanTrue);
+            return;
+        }
+    }
+}
+
+static void crack_apply_licensed_label(SettingsViewController *self) {
+    UILabel *label = [self valueForKey:@"licenseStatusLabel"];
+    if ([label isKindOfClass:[UILabel class]])
+        label.text = @"Licensed";
+}
+
 %hook CommandServer_907239
+- (id)init {
+    id r = %orig;
+    crack_force_licensed_ivar(r);
+    return r;
+}
 - (void)setupTimer_240358 { return; }
 - (void)licenseLimitTimeout_120300 { return; }
 - (void)licenseCoolDown_266971 { return; }
@@ -111,6 +139,11 @@ static void schedule_validate_hook_retries(void) {
 %end
 
 %hook Global_983499
+- (id)init {
+    id r = %orig;
+    crack_force_licensed_ivar(r);
+    return r;
+}
 - (void)setupTimer_167855 { return; }
 - (void)licenseLimitTimeout_552565 { return; }
 - (BOOL)isLicensed { return YES; }
@@ -137,12 +170,26 @@ static void schedule_validate_hook_retries(void) {
 }
 %end
 
+%hook LicenseManager
++ (void)downloadLicenseAsync:(id)success fail:(id)fail {
+    if (success) {
+        void (^ok)(long long) = success;
+        ok(1);
+        return;
+    }
+    %orig;
+}
+%end
+
 %hook SettingsViewController
+- (void)viewWillAppear:(BOOL)animated {
+    %orig;
+    crack_apply_licensed_label(self);
+}
+
 - (void)checkLicenseStatus {
     %orig;
-    UILabel *label = [self valueForKey:@"licenseStatusLabel"];
-    if ([label isKindOfClass:[UILabel class]])
-        label.text = @"Licensed";
+    crack_apply_licensed_label(self);
 }
 %end
 
@@ -162,5 +209,5 @@ static void schedule_validate_hook_retries(void) {
 
 %ctor {
     schedule_validate_hook_retries();
-    NSLog(@"[crackATT v3.3] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
+    NSLog(@"[crackATT v3.5] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
 }

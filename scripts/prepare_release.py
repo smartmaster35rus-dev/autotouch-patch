@@ -30,18 +30,19 @@ def main() -> None:
         print(f"Missing base release deb: {RELEASE_DEB}")
         raise SystemExit(1)
 
-    tmp = ROOT / "tmp_prepare_extract"
-    if tmp.exists():
-        shutil.rmtree(tmp)
+    work = ROOT / "tmp_prepare_extract"
+    pkg = work / "pkg"
+    if work.exists():
+        shutil.rmtree(work)
 
     sys.path.insert(0, str(ROOT / "scripts"))
     from extract_deb import extract_deb
 
-    extract_deb(RELEASE_DEB, tmp)
+    extract_deb(RELEASE_DEB, pkg)
     if EXTRACTED.exists():
         shutil.rmtree(EXTRACTED)
-    shutil.copytree(tmp, EXTRACTED)
-    shutil.rmtree(tmp)
+    shutil.copytree(pkg, EXTRACTED)
+    shutil.rmtree(work)
 
     CRACK_DEST.mkdir(parents=True, exist_ok=True)
     for name in ("crackATT.dylib", "crackATT.plist"):

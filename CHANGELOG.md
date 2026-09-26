@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.5.5-v3.5] - 2026-09-26
+
+### Added
+- **Hybrid release** — official package with **binary-patched `ATTweak.dylib`** (16-byte setupTimer fix) **plus** `crackATT` for license state after respring
+- `scripts/patch_attweak.py`, `scripts/build_hybrid_release.py`, `scripts/extract_deb.py`
+- **postinst** runs `ldid -S` on `ATTweak.dylib` and `crackATT.dylib`, then **`ldrestart`**
+
+### Fixed
+- **License “falls off” after respring** — v3.4-only ATTweak patch left socket/UI checks unlicensed; v3.5 keeps `crackATT` in the deb and forces `_licensed` on `Global` / `CommandServer` init, `LicenseManager` async success, and settings label on every `viewWillAppear`
+
 ## [8.5.5-v3.3] - 2026-09-25
 
 ### Fixed

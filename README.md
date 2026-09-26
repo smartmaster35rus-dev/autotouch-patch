@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![iOS](https://img.shields.io/badge/iOS-12.2%2B-lightgrey.svg)](https://autotouch.net)
 [![Architecture](https://img.shields.io/badge/arch-arm64-orange.svg)](#требования)
-[![Version](https://img.shields.io/badge/version-8.5.5-green.svg)](releases/)
+[![Version](https://img.shields.io/badge/version-8.5.5--v3.5-green.svg)](releases/)
 
 Установка одной командой прямо с iPhone · без модификации оригинальных бинарников
 
@@ -27,7 +27,7 @@
 | **Автор** | [@smartmaster35rus-dev](https://github.com/smartmaster35rus-dev) |
 | **Лицензия** | [MIT](LICENSE) |
 | **Пакет** | `me.autotouch.autotouch.ios8` |
-| **Версия** | `8.5.5` |
+| **Версия** | `8.5.5-v3.5` (hybrid) |
 | **Архитектура** | `iphoneos-arm64` (rootless, `/var/jb/`) |
 | **Оригинал** | [AutoTouch](https://autotouch.net) © Kent Krantz |
 
@@ -59,7 +59,7 @@
 curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patch/main/scripts/install.sh | bash
 ```
 
-Скрипт скачает `.deb`, установит пакет и сделает respring.
+Скрипт скачает `.deb`, установит пакет; **postinst** переподпишет dylib (`ldid`) и выполнит **`ldrestart`**.
 
 ### Способ 2 — только патч (AutoTouch уже установлен)
 
@@ -113,24 +113,29 @@ autotouch-patch/
 
 ---
 
-## 🔧 Как работает патч
+## 🔧 Как работает патч (v3.5 hybrid)
 
-Добавляется MobileSubstrate-твик **`crackATT v2`**, перехватывающий цепочку лицензии AutoTouch 8.5.5:
+**Два слоя** в одном `.deb`:
+
+1. **Binary-патч штатного `ATTweak.dylib`** (16 байт) — `setupTimer` в backboardd/SpringBoard сразу делает `RET`, **120‑секундный NSTimer не создаётся** (как в вашем HackerAI-билде).
+2. **`crackATT v3.5`** — Substrate/ElleKit-твик для статуса **Licensed**, автозапуска и алертов **после respring**:
 
 | Класс | Методы | Эффект |
 |-------|--------|--------|
-| `CommandServer_907239` | `setupTimer_240358`, `licenseLimitTimeout_120300`, `check_929132` | Блокирует 120-сек таймер и async-проверку |
-| `Global_983499` | `setupTimer_167855`, `licenseLimitTimeout_552565` | Блокирует второй 120-сек таймер |
-| `JSEngine` | `alertForProVersion` | Не показывает «License Required» и не останавливает движок |
-| `PlayingManager_932730` | `stopAllPlayings` | Скрипты не принудительно останавливаются |
-| `Global` (legacy) | `licenseLimitTimeout`, `init`, … | Совместимость с 7.x |
+| `CommandServer_907239` / `Global_983499` | `init`, `setupTimer_*`, `licenseLimitTimeout_*`, `isLicensed` | Таймер + флаг licensed после перезагрузки процессов |
+| `ATTweakClient` / `LicenseManager` | `downloadLicense:`, `downloadLicenseAsync:fail:` | Ответ «лицензия есть» без сервера |
+| `SettingsViewController` | `checkLicenseStatus`, `viewWillAppear:` | В настройках всегда **Licensed** |
+| `JSEngine` | `setupTimer`, `alertForProVersion` | Нет pro-алерта в приложении |
+| `PlayingManager_932730` | `stopAllPlayings*` | Скрипт не останавливается принудительно |
+| C symbols | `validateLicense_*`, `_downloadLicenseSynchronously_*` | Автозапуск без «License is needed…» |
 
 **Filter** (`crackATT.plist`):
 
+- `com.apple.backboardd`
 - `com.apple.springboard`
 - `me.autotouch.AutoTouch.ios8`
 
-Оригинальные бинарники AutoTouch **не изменяются**.
+Приложение **AutoTouch.app** не трогается; в пакете заменяется только **`ATTweak.dylib`** (size-preserving binary patch) + добавляется **`crackATT`**.
 
 ---
 
