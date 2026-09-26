@@ -4,10 +4,17 @@
 from __future__ import annotations
 
 import os
+import plistlib
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+REQUIRED_CRACK_BUNDLES = (
+    "com.apple.backboardd",
+    "com.apple.springboard",
+    "me.autotouch.AutoTouch.ios8",
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 PATCH_DIR = ROOT / "patch"
@@ -57,6 +64,35 @@ def run_py(script: str, *args: str) -> None:
     subprocess.check_call(cmd)
 
 
+def ensure_crackatt_plist(path: Path) -> None:
+    """Always ship the full filter (incl. me.autotouch.AutoTouch.ios8)."""
+    canonical = ROOT / "tweak" / "crackATT.plist"
+    src = canonical if canonical.is_file() else PATCH_DIR / "crackATT.plist"
+    shutil.copy2(src, path)
+    data = plistlib.load(path.open("rb"))
+    bundles = list(data.get("Filter", {}).get("Bundles", []))
+    missing = [b for b in REQUIRED_CRACK_BUNDLES if b not in bundles]
+    if missing:
+        raise SystemExit("crackATT.plist missing bundles: %s" % ", ".join(missing))
+
+
+def relax_ellekit_depends(extracted: Path) -> None:
+    """Stock control hard-requires the dpkg package `ellekit`.
+    Many rootless jailbreaks ship the injector without that package name,
+    so dpkg unpacks then leaves the package unconfigured.
+    """
+    control = extracted / "control" / "control"
+    text = control.read_text(encoding="utf-8")
+    old = "Depends: firmware (>= 12.2) | org.swift.libswift (>= 5.0), ellekit\n"
+    new = "Depends: firmware (>= 12.2) | org.swift.libswift (>= 5.0)\n"
+    if old not in text:
+        raise SystemExit("unexpected Depends line in control")
+    text = text.replace(old, new, 1)
+    # Debian revision so dpkg upgrades a half-configured 8.5.5
+    text = text.replace("Version: 8.5.5\n", "Version: 8.5.5-v3.6\n", 1)
+    control.write_text(text, encoding="utf-8", newline="\n")
+
+
 def append_postinst(extracted: Path) -> None:
     postinst = extracted / "control" / "postinst"
     text = postinst.read_text(encoding="utf-8", errors="replace") if postinst.is_file() else "#!/bin/sh\n"
@@ -70,7 +106,7 @@ def append_postinst(extracted: Path) -> None:
 
 
 def main() -> None:
-    version = os.environ.get("RELEASE_VERSION", "8.5.5-v3.5")
+    version = os.environ.get("RELEASE_VERSION", "8.5.5-v3.6")
     orig = default_orig_deb()
     tmp_patched = ROOT / "patch" / "ATTweak_patched.dylib"
 
@@ -95,18 +131,22 @@ def main() -> None:
 
     dest_dl = EXTRACTED / "data" / DYLIB_REL
     dest_dl.mkdir(parents=True, exist_ok=True)
-    for name in ("crackATT.dylib", "crackATT.plist"):
-        shutil.copy2(PATCH_DIR / name, dest_dl / name)
+    shutil.copy2(PATCH_DIR / "crackATT.dylib", dest_dl / "crackATT.dylib")
+    ensure_crackatt_plist(dest_dl / "crackATT.plist")
+    shutil.copy2(dest_dl / "crackATT.plist", PATCH_DIR / "crackATT.plist")
     print("[*] Injected crackATT into %s" % dest_dl)
 
+    relax_ellekit_depends(EXTRACTED)
     append_postinst(EXTRACTED)
 
     out_name = "me.autotouch.autotouch.ios8_%s_iphoneos-arm64_patched.deb" % version
     out = ROOT / "releases" / out_name
     run_py("build_deb.py", str(EXTRACTED), str(out))
+    run_py("verify_release_deb.py", str(out))
 
     alias = ROOT / "releases" / "me.autotouch.autotouch.ios8_8.5.5_iphoneos-arm64_patched.deb"
     shutil.copy2(out, alias)
+    run_py("verify_release_deb.py", str(alias))
     print("[+] %s" % out)
     print("[+] %s" % alias)
 

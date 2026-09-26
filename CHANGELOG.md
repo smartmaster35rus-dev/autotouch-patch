@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.5.5-v3.6] - 2026-09-26
+
+### Fixed
+- **`dpkg` left the package unconfigured** — stock `Depends: …, ellekit` fails when the jailbreak has no dpkg package named `ellekit`. v3.6 drops that hard dependency. Payload is the full original tree (403 files) plus `crackATT.dylib` / `crackATT.plist`.
+- **Maintainer scripts** — `preinst` / `postinst` are mode `0755` again (the rebuild had written them as `0644`, so they did not run).
+- **`crackATT.plist`** always includes `me.autotouch.AutoTouch.ios8` (that line is not part of official `ATTweak.plist`).
+
+### Notes
+- Official **`ATTweak.plist`** lists only `com.apple.backboardd` and `com.apple.springboard`. Photo of that plist with two items matches the original `.deb`. The app bundle is on **`crackATT.plist`**.
+
 ## [8.5.5-v3.5] - 2026-09-26
 
 ### Added

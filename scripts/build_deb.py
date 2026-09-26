@@ -34,12 +34,19 @@ def tarinfo_for_dir(arcname: str) -> tarfile.TarInfo:
     return info
 
 
+_MAINT_SCRIPTS = {"preinst", "postinst", "prerm", "postrm", "extrainst_"}
+
+
 def tarinfo_for_file(path: Path, arcname: str) -> tarfile.TarInfo:
     info = base_tarinfo(arcname, int(path.stat().st_mtime))
     info.type = tarfile.REGTYPE
-    if arcname.endswith((".dylib", ".so")) or arcname.endswith(
-        ("autotouch", "AutoTouch")
-    ) or "/bin/" in arcname:
+    name = Path(arcname).name
+    if (
+        name in _MAINT_SCRIPTS
+        or arcname.endswith((".dylib", ".so"))
+        or arcname.endswith(("autotouch", "AutoTouch"))
+        or "/bin/" in arcname
+    ):
         info.mode = 0o755
     else:
         info.mode = 0o644
