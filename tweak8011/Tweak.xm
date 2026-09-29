@@ -6,10 +6,8 @@
 #import <objc/message.h>
 
 @interface CommandServer : NSObject
-+ (instancetype)sharedInstance;
 @end
 @interface Spring : NSObject
-+ (instancetype)sharedInstance;
 @end
 @interface JSEngine : NSObject
 @end
@@ -124,11 +122,6 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     crack_force_licensed_ivar(r);
     return r;
 }
-+ (id)sharedInstance {
-    id r = %orig;
-    crack_force_licensed_ivar(r);
-    return r;
-}
 - (void)suYYKTj6MHk { return; }
 - (void)licenseLimitTimeout { return; }
 - (void)licenseCoolDown { return; }
@@ -141,11 +134,6 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 
 %hook Spring
 - (id)init {
-    id r = %orig;
-    crack_force_licensed_ivar(r);
-    return r;
-}
-+ (id)sharedInstance {
     id r = %orig;
     crack_force_licensed_ivar(r);
     return r;
@@ -181,15 +169,10 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     crack_refresh_license_state();
     %orig;
 }
-- (void)add:(id)arg {
-    crack_refresh_license_state();
-    %orig;
-}
 %end
 
 %hook JSEngine
 + (void)alertForProVersion { return; }
-- (void)alertForProVersion { return; }
 %end
 
 %hook JSExtension
@@ -259,11 +242,6 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
         return;
     %orig;
 }
-- (void)showAlert:(id)message {
-    if (crack_is_license_text((NSString *)message))
-        return;
-    %orig;
-}
 %end
 
 %hook UIAlertController
@@ -277,14 +255,6 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 %hook UIViewController
 - (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion {
     if (crack_vc_is_license_alert(viewControllerToPresent))
-        return;
-    %orig;
-}
-%end
-
-%hook UIAlertView
-- (void)show {
-    if (crack_should_block_alert(self.title, self.message))
         return;
     %orig;
 }
