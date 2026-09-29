@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.11-v2-hybrid] - 2026-09-30
+
+### Fixed
+- **License alert after respring** — auto-launch often uses **UIAlertController**, not `Alert showAlert:`; v2 blocks `presentViewController` / `UIAlertController` / `UIAlertView` for any license-related text, refreshes `CommandServer`/`Spring` `sharedInstance` before **AutoLaunchManager** / **TimerManager**, and returns a licensed dict from **JSExtension getLicense**.
+
 ## [8.0.11-v1-hybrid] - 2026-09-30
 
 ### Added
