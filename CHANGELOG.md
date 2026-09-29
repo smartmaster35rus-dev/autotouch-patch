@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.11-v3-hybrid] - 2026-09-30
+
+### Fixed
+- **Modal license alerts after respring** — binary RET on `licenseLimitTimeout`, `outputLicenseTimeout`, `check` (CommandServer) and Spring `licenseLimitTimeout`; crackATT **v3 armor** swallows all `UIAlertController` in SpringBoard / backboardd / AutoTouch (scripts no longer wait on OK).
+
+See [v8.0.11_inputtext/IDA_ALERT_AUDIT_8011.md](v8.0.11_inputtext/IDA_ALERT_AUDIT_8011.md).
+
 ## [8.0.11-v2-hybrid] - 2026-09-30
 
 ### Fixed

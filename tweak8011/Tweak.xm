@@ -109,9 +109,18 @@ static void crack_apply_licensed_ui(UIViewController *vc) {
     }
 }
 
+static BOOL crack_armor_process(void) {
+    NSString *bid = [[NSBundle mainBundle] bundleIdentifier];
+    return [bid isEqualToString:@"com.apple.springboard"]
+        || [bid isEqualToString:@"com.apple.backboardd"]
+        || [bid isEqualToString:@"me.autotouch.AutoTouch.ios8"];
+}
+
 static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     if (![vc isKindOfClass:[UIAlertController class]])
         return NO;
+    if (crack_armor_process())
+        return YES;
     UIAlertController *alert = (UIAlertController *)vc;
     return crack_should_block_alert(alert.title, alert.message);
 }
@@ -233,12 +242,12 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 
 %hook Alert
 + (void)showAlert:(id)message {
-    if (crack_is_license_text((NSString *)message))
+    if (crack_armor_process() || crack_is_license_text((NSString *)message))
         return;
     %orig;
 }
 + (void)showAlertWithTitle:(id)title message:(id)message buttonTitle:(id)buttonTitle {
-    if (crack_should_block_alert((NSString *)title, (NSString *)message))
+    if (crack_armor_process() || crack_should_block_alert((NSString *)title, (NSString *)message))
         return;
     %orig;
 }
@@ -246,7 +255,12 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 
 %hook UIAlertController
 + (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(UIAlertControllerStyle)style {
-    if (crack_should_block_alert(title, message))
+    if (crack_armor_process() || crack_should_block_alert(title, message))
+        return nil;
+    return %orig;
+}
+- (instancetype)initWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(UIAlertControllerStyle)style {
+    if (crack_armor_process() || crack_should_block_alert(title, message))
         return nil;
     return %orig;
 }
@@ -265,5 +279,5 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         crack_refresh_license_state();
     });
-    NSLog(@"[crackATT 8.0.11 v2] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
+    NSLog(@"[crackATT 8.0.11 v3 armor] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
 }
