@@ -82,6 +82,60 @@ TIMER_FALLBACK: dict[str, list[int]] = {
     "arm64e": [0x26F9580, 0x26FC9A8],
 }
 
+# objc_msgSend stubs for Alert / UIAlert (arm64 VA) — RET here silences all ATTweak modal alerts
+ALERT_STUB_VA_ARM64 = [0xFD6820, 0xFD7BE0, 0xFD7A00, 0xFD69A0, 0xFD7E00]
+
+# AutoLaunchManager -[start:] calls showAlert @ 0xf76a18 (arm64)
+AUTO_LAUNCH_ALERT_BL_ARM64 = 0xF76A18
+
+NOP = bytes.fromhex("1f2003d5")  # nop
+
+
+def macho_sections(sl: bytes) -> list[tuple[int, int, int]]:
+    ncmds = struct.unpack_from("<I", sl, 16)[0]
+    o = 32
+    secs: list[tuple[int, int, int]] = []
+    for _ in range(ncmds):
+        cmd, cmdsize = struct.unpack_from("<II", sl, o)
+        if cmd == 0x19:
+            nsects = struct.unpack_from("<I", sl, o + 64)[0]
+            so = o + 72
+            for _ in range(nsects):
+                addr, size = struct.unpack_from("<QQ", sl, so + 32)
+                foff = struct.unpack_from("<I", sl, so + 48)[0]
+                secs.append((addr, foff, size))
+                so += 80
+        o += cmdsize
+    return secs
+
+
+def va_to_fileoff(sl: bytes, va: int) -> int | None:
+    va &= 0xFFFFFFFFF
+    for addr, foff, size in macho_sections(sl):
+        if addr <= va < addr + size:
+            return foff + (va - addr)
+    return None
+
+
+def patch_alert_stubs(data: bytearray, off: int, sl: bytes, slice_name: str) -> list[int]:
+    out: list[int] = []
+    if slice_name != "arm64":
+        return out
+    for va in ALERT_STUB_VA_ARM64:
+        fo = va_to_fileoff(sl, va)
+        if fo is None:
+            print("  [!] %s: alert stub %s not in slice" % (slice_name, hex(va)))
+            continue
+        file_off = off + fo
+        out.append(file_off)
+        print("  %s: alert stub %s @ file 0x%x -> RET" % (slice_name, hex(va), file_off))
+    fo = va_to_fileoff(sl, AUTO_LAUNCH_ALERT_BL_ARM64)
+    if fo is not None:
+        file_off = off + fo
+        data[file_off : file_off + 4] = NOP
+        print("  %s: AutoLaunch start: alert bl @ file 0x%x -> NOP" % (slice_name, file_off))
+    return out
+
 
 def patch_timers(data: bytearray, off: int, sl: bytes, slice_name: str) -> list[int]:
     out: list[int] = []
@@ -125,6 +179,7 @@ def main() -> None:
         print("[*] slice %d (%s)" % (idx, name))
         patches.extend(patch_timers(data, off, sl, name))
         patches.extend(patch_signatures(data, off, sl, name))
+        patches.extend(patch_alert_stubs(data, off, sl, name))
     if not patches:
         raise SystemExit("no patches applied")
     for p in sorted(set(patches)):

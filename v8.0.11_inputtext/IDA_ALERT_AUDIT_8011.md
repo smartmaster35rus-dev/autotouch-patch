@@ -27,9 +27,9 @@ License state can be **OK** while this dialog still runs: auto-launch logic fire
 
 `AutoLaunchManager` `launch` / `start:` call into playing pipeline; alert is not always in the same function — **blocking UI is UIKit**.
 
-## Patch strategy (hybrid v3)
+## Patch strategy (hybrid v4)
 
-1. **Binary** (`patch_attweak_8011.py`): timer + license handler RET (FAT arm64 + arm64e via signatures).
-2. **crackATT v3**: in `SpringBoard`, `backboardd`, `AutoTouch.app` — **drop every `UIAlertController`** (armor mode) + keep `Alert showAlert*` no-ops + license hooks.
-
-This matches “license is fine; kill all distraction popups so scripts keep running after respring”.
+1. **Binary** (`patch_attweak_8011.py`): timer + license handler RET + **alert objc_msgSend stubs RET** (`0xfd6820`, `0xfd7be0`, `0xfd7a00`, `0xfd69a0`, `0xfd7e00`) + **NOP** at `AutoLaunchManager start:` `bl` @ `0xf76a18`.  
+   Stubs run **inside ATTweak before ElleKit** — fixes lock-screen alert after respring when crackATT loads late.
+2. **crackATT v3 armor**: block `UIAlertController` in SpringBoard / backboardd / AutoTouch.app (backup layer).
+3. **postinst**: `uicache -p /var/jb/Applications/AutoTouch.app` so the icon returns after `dpkg`.

@@ -36,6 +36,9 @@ if command -v ldid >/dev/null 2>&1; then
     fi
   done
 fi
+if command -v uicache >/dev/null 2>&1; then
+  uicache -p "${JB}/Applications/AutoTouch.app" 2>/dev/null || uicache -a 2>/dev/null || true
+fi
 if command -v ldrestart >/dev/null 2>&1; then
   ldrestart
 fi
@@ -102,7 +105,7 @@ def relax_ellekit_depends(extracted: Path) -> None:
             raise SystemExit("unexpected Depends line in control:\n" + text)
     else:
         text = text.replace(old, new, 1)
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v3-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4-hybrid")
     text = text.replace("Version: 8.0.11\n", "Version: %s\n" % version, 1)
     control.write_text(text, encoding="utf-8", newline="\n")
 
@@ -110,7 +113,12 @@ def relax_ellekit_depends(extracted: Path) -> None:
 def append_postinst(extracted: Path) -> None:
     postinst = extracted / "control" / "postinst"
     text = postinst.read_text(encoding="utf-8", errors="replace") if postinst.is_file() else "#!/bin/sh\n"
-    if "autotouch-patch 8.0.11" in text:
+    if "autotouch-patch 8.0.11" in text and "uicache -p" in text:
+        return
+    if "autotouch-patch 8.0.11" in text and "uicache -p" not in text:
+        text += "\nif command -v uicache >/dev/null 2>&1; then\n  uicache -p \"${JB}/Applications/AutoTouch.app\" 2>/dev/null || uicache -a 2>/dev/null || true\nfi\n"
+        postinst.write_text(text, encoding="utf-8", newline="\n")
+        postinst.chmod(0o755)
         return
     if not text.endswith("\n"):
         text += "\n"
@@ -120,7 +128,7 @@ def append_postinst(extracted: Path) -> None:
 
 
 def main() -> None:
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v3-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4-hybrid")
     orig = default_orig_deb()
     crack = crack_dylib_path()
     tmp_patched = PATCH8011 / "ATTweak_patched.dylib"
