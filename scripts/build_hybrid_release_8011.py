@@ -47,6 +47,7 @@ def default_orig_deb() -> Path:
     if env:
         return Path(env)
     for path in (
+        ROOT / "vendor" / "me.autotouch.autotouch.ios8.inputtext_8.0.11_iphoneos-arm64.deb",
         INPUTTEXT / "me.autotouch.autotouch.ios8.inputtext_8.0.11_iphoneos-arm64.deb",
         INPUTTEXT / "me.autotouch.autotouch.ios8.inputtext_8.0.11_iphoneos-arm64_patched.deb",
     ):

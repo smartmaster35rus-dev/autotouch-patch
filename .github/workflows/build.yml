@@ -6,14 +6,21 @@ on:
     paths:
       - 'tweak/**'
       - 'tweak8011/**'
+      - 'vendor/**'
+      - 'scripts/build_hybrid_release_8011.py'
+      - 'v8.0.11_inputtext/**'
       - '.github/workflows/build.yml'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: macos-14
     env:
       THEOS: /Users/runner/theos
+      RELEASE_VERSION: 8.0.11-v1-hybrid
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +58,36 @@ jobs:
           file dist/crackATT.dylib dist/crackATT-8011.dylib
           ls -la dist/
 
+      - name: Build hybrid 8.0.11 .deb
+        run: |
+          mkdir -p v8.0.11_inputtext/patch releases
+          cp dist/crackATT-8011.dylib v8.0.11_inputtext/patch/crackATT.dylib
+          python3 scripts/build_hybrid_release_8011.py
+          ls -la releases/
+
       - uses: actions/upload-artifact@v4
         with:
           name: crackATT-v2
           path: dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hybrid-8011-deb
+          path: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v1-hybrid_iphoneos-arm64_patched.deb
+
+      - name: Publish GitHub Release 8.0.11-v1-hybrid
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: 8.0.11-v1-hybrid
+          name: AutoTouch 8.0.11-v1-hybrid
+          body: |
+            Hybrid package for **AutoTouch 8.0.11 inputtext** (rootless arm64): binary-patched **ATTweak.dylib** + **crackATT** for Licensed UI and auto-launch after respring.
+
+            ```sh
+            export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin
+            dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v1-hybrid_iphoneos-arm64_patched.deb
+            ldrestart
+            ```
+          files: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v1-hybrid_iphoneos-arm64_patched.deb
+          make_latest: true
+          fail_on_unmatched_files: true
