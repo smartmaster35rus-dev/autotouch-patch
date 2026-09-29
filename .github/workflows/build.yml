@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tweak/**'
+      - 'tweak8011/**'
       - '.github/workflows/build.yml'
   workflow_dispatch:
 
@@ -24,9 +25,15 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git /tmp/theos-sdks
           mv /tmp/theos-sdks/*.sdk "$THEOS/sdks/"
 
-      - name: Build tweak
+      - name: Build tweak (8.5.5)
         run: |
           cd tweak
+          make clean 2>/dev/null || true
+          make
+
+      - name: Build tweak (8.0.11)
+        run: |
+          cd tweak8011
           make clean 2>/dev/null || true
           make
 
@@ -37,7 +44,11 @@ jobs:
           test -n "$DYLIB" || (find tweak/.theos && exit 1)
           cp "$DYLIB" dist/crackATT.dylib
           cp tweak/crackATT.plist dist/crackATT.plist
-          file dist/crackATT.dylib
+          DYLIB8011=$(find tweak8011/.theos -name 'crackATT.dylib' -type f | head -1)
+          test -n "$DYLIB8011" || (find tweak8011/.theos && exit 1)
+          cp "$DYLIB8011" dist/crackATT-8011.dylib
+          cp tweak8011/crackATT.plist dist/crackATT-8011.plist
+          file dist/crackATT.dylib dist/crackATT-8011.dylib
           ls -la dist/
 
       - uses: actions/upload-artifact@v4
