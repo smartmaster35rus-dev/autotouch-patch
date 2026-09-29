@@ -50,6 +50,9 @@ static BOOL crack_is_license_text(NSString *text) {
             @"few minutes",
             @"free version of AutoTouch",
             @"without limitations",
+            @"Failed to write license",
+            @"Failed to remove the broken license",
+            @"write license file",
         ];
     });
     for (NSString *needle in needles) {
@@ -119,10 +122,22 @@ static BOOL crack_armor_process(void) {
 static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     if (![vc isKindOfClass:[UIAlertController class]])
         return NO;
-    if (crack_armor_process())
-        return YES;
     UIAlertController *alert = (UIAlertController *)vc;
-    return crack_should_block_alert(alert.title, alert.message);
+    if (crack_should_block_alert(alert.title, alert.message))
+        return YES;
+    NSString *bid = [[NSBundle mainBundle] bundleIdentifier];
+    if ([bid isEqualToString:@"me.autotouch.AutoTouch.ios8"]) {
+        NSString *msg = alert.message ?: @"";
+        if ([msg rangeOfString:@"Unlicensed" options:NSCaseInsensitiveSearch].location != NSNotFound)
+            return YES;
+        if ([alert.title isKindOfClass:[NSString class]] &&
+            [alert.title isEqualToString:@"Ошибка"] &&
+            crack_text_mentions_license(msg))
+            return YES;
+    }
+    if (crack_armor_process() && ![bid isEqualToString:@"me.autotouch.AutoTouch.ios8"])
+        return YES;
+    return NO;
 }
 
 %hook CommandServer
@@ -207,14 +222,21 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 }
 %end
 
-%hook LicenseManager
-- (void)downloadLicenseAsync:(id)success fail:(id)fail {
-    if (success) {
-        void (^ok)(long long) = success;
-        ok(1);
+static void crack_call_license_success(id successBlock) {
+    if (!successBlock)
         return;
-    }
-    %orig;
+    void (^ok)(long long) = successBlock;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        ok(1);
+    });
+}
+
+%hook LicenseManager
++ (void)downloadLicenseAsync:(id)success fail:(id)fail {
+    crack_call_license_success(success);
+}
+- (void)downloadLicenseAsync:(id)success fail:(id)fail {
+    crack_call_license_success(success);
 }
 - (BOOL)downloadLicenseFile:(id)path {
     return YES;
@@ -224,12 +246,40 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 }
 %end
 
+static void crack_license_download_ok(LicenseViewController *self) {
+    crack_apply_licensed_ui(self);
+    @try {
+        [self setValue:@YES forKey:@"licensed"];
+        [self setValue:@"Licensed" forKey:@"licenseStatus"];
+    } @catch (__unused NSException *e) {
+    }
+}
+
 %hook LicenseViewController
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
     crack_apply_licensed_ui(self);
 }
 - (BOOL)licensed { return YES; }
+- (void)showDownloadUnsuccessfullyAlert:(id)reason {
+    crack_license_download_ok(self);
+}
+- (void)loadLicense:(id)sender {
+    crack_license_download_ok(self);
+}
+- (IBAction)downloadLicense:(id)sender {
+    crack_license_download_ok(self);
+}
+- (void)showAlertFrom:(id)from message:(id)message {
+    if (crack_is_license_text((NSString *)message))
+        return;
+    %orig;
+}
+- (void)showAlertFrom:(id)from title:(id)title message:(id)message buttonTitle:(id)buttonTitle {
+    if (crack_should_block_alert((NSString *)title, (NSString *)message))
+        return;
+    %orig;
+}
 %end
 
 %hook SettingsViewController
@@ -255,12 +305,19 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 
 %hook UIAlertController
 + (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(UIAlertControllerStyle)style {
-    if (crack_armor_process() || crack_should_block_alert(title, message))
+    if (crack_should_block_alert(title, message))
+        return nil;
+    if ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"me.autotouch.AutoTouch.ios8"]) {
+        NSString *msg = message ?: @"";
+        if ([msg rangeOfString:@"Unlicensed" options:NSCaseInsensitiveSearch].location != NSNotFound)
+            return nil;
+    }
+    if (crack_armor_process() && ![[NSBundle mainBundle].bundleIdentifier isEqualToString:@"me.autotouch.AutoTouch.ios8"])
         return nil;
     return %orig;
 }
 - (instancetype)initWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(UIAlertControllerStyle)style {
-    if (crack_armor_process() || crack_should_block_alert(title, message))
+    if (crack_should_block_alert(title, message))
         return nil;
     return %orig;
 }
@@ -279,5 +336,5 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         crack_refresh_license_state();
     });
-    NSLog(@"[crackATT 8.0.11 v3 armor] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
+    NSLog(@"[crackATT 8.0.11 v4.1 license-ui] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
 }

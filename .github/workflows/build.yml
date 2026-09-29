@@ -20,7 +20,7 @@ jobs:
     runs-on: macos-14
     env:
       THEOS: /Users/runner/theos
-      RELEASE_VERSION: 8.0.11-v4-hybrid
+      RELEASE_VERSION: 8.0.11-v4.1-hybrid
     steps:
       - uses: actions/checkout@v4
 
@@ -73,21 +73,21 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hybrid-8011-deb
-          path: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v4-hybrid_iphoneos-arm64_patched.deb
+          path: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v4.1-hybrid_iphoneos-arm64_patched.deb
 
-      - name: Publish GitHub Release 8.0.11-v4-hybrid
+      - name: Publish GitHub Release 8.0.11-v4.1-hybrid
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 8.0.11-v4-hybrid
-          name: AutoTouch 8.0.11-v4-hybrid
+          tag_name: 8.0.11-v4.1-hybrid
+          name: AutoTouch 8.0.11-v4.1-hybrid
           body: |
-            **v4:** ATTweak **alert stub RET** (works before ElleKit loads — fixes lock-screen "License is needed…") + **uicache** in postinst for missing icon.
+            **v4.1:** «Загрузить лицензию» — без ошибки Unlicensed (LicenseManager + LicenseViewController hooks). Same ATTweak v4 binary patches.
 
             ```sh
             export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin
-            dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v4-hybrid_iphoneos-arm64_patched.deb
+            dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v4.1-hybrid_iphoneos-arm64_patched.deb
             ldrestart
             ```
-          files: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v4-hybrid_iphoneos-arm64_patched.deb
+          files: releases/me.autotouch.autotouch.ios8.inputtext_8.0.11-v4.1-hybrid_iphoneos-arm64_patched.deb
           make_latest: true
           fail_on_unmatched_files: true

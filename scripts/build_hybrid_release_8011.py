@@ -105,7 +105,7 @@ def relax_ellekit_depends(extracted: Path) -> None:
             raise SystemExit("unexpected Depends line in control:\n" + text)
     else:
         text = text.replace(old, new, 1)
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.1-hybrid")
     text = text.replace("Version: 8.0.11\n", "Version: %s\n" % version, 1)
     control.write_text(text, encoding="utf-8", newline="\n")
 
@@ -128,7 +128,7 @@ def append_postinst(extracted: Path) -> None:
 
 
 def main() -> None:
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.1-hybrid")
     orig = default_orig_deb()
     crack = crack_dylib_path()
     tmp_patched = PATCH8011 / "ATTweak_patched.dylib"
