@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.11-v1-hybrid] - 2026-09-30
+
+### Added
+- **`tweak8011/`** — `crackATT` for AutoTouch **8.0.11 inputtext** (`CommandServer` / `Spring`, `Alert`, app `LicenseManager` / `ATTweakClient`, settings UI)
+- **`scripts/build_hybrid_release_8011.py`** — patched **ATTweak.dylib** + **crackATT.dylib** in one `.deb`, relaxed `Depends` (no hard `ellekit`), **postinst** `ldrestart`
+- CI builds **`crackATT-8011.dylib`** alongside 8.5.5 crackATT
+
+### Notes
+- Timer-only patch (no crackATT) still shows **Unlicensed** and blocks auto-launch after respring; hybrid fixes that.
+
 ## [8.5.5-v3.6] - 2026-09-26
 
 ### Fixed

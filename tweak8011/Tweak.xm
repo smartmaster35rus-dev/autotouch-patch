@@ -53,24 +53,19 @@ static void crack_force_licensed_ivar(id obj) {
     if (!obj)
         return;
     Class cls = object_getClass(obj);
-    const char *names[] = {"_licensed", "licensed", "_licenseChecked", NULL};
+    const char *names[] = {"_licensed", "licensed", NULL};
     for (int i = 0; names[i]; i++) {
         Ivar iv = class_getInstanceVariable(cls, names[i]);
-        if (iv) {
-            const char *type = ivar_getTypeEncoding(iv);
-            if (type && type[0] == 'B')
-                object_setIvar(obj, iv, (void *)YES);
-            else
-                object_setIvar(obj, iv, (__bridge id)kCFBooleanTrue);
-        }
+        if (iv)
+            object_setIvar(obj, iv, (__bridge id)kCFBooleanTrue);
     }
 }
 
-static void crack_apply_licensed_ui(UIViewController *self) {
-    if (!self)
+static void crack_apply_licensed_ui(UIViewController *vc) {
+    if (!vc)
         return;
     for (NSString *key in @[@"licenseStatusLabel", @"licenseLabel", @"_licenseLabel"]) {
-        id label = [self valueForKey:key];
+        id label = [vc valueForKey:key];
         if ([label isKindOfClass:[UILabel class]]) {
             ((UILabel *)label).text = @"Licensed";
             return;
@@ -109,7 +104,6 @@ static void crack_apply_licensed_ui(UIViewController *self) {
 
 %hook JSEngine
 + (void)alertForProVersion { return; }
-+ (void)licenseLimitTimeout { return; }
 %end
 
 %hook JSExtension

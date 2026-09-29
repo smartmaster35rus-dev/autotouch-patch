@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![iOS](https://img.shields.io/badge/iOS-12.2%2B-lightgrey.svg)](https://autotouch.net)
 [![Architecture](https://img.shields.io/badge/arch-arm64-orange.svg)](#требования)
-[![Version](https://img.shields.io/badge/version-8.5.5--v3.5-green.svg)](releases/)
+[![Version](https://img.shields.io/badge/version-8.5.5--v3.6-green.svg)](releases/)
 
 Установка одной командой прямо с iPhone · без модификации оригинальных бинарников
 
@@ -27,7 +27,7 @@
 | **Автор** | [@smartmaster35rus-dev](https://github.com/smartmaster35rus-dev) |
 | **Лицензия** | [MIT](LICENSE) |
 | **Пакет** | `me.autotouch.autotouch.ios8` |
-| **Версия** | `8.5.5-v3.5` (hybrid) |
+| **Версия** | `8.5.5-v3.6` (hybrid) |
 | **Архитектура** | `iphoneos-arm64` (rootless, `/var/jb/`) |
 | **Оригинал** | [AutoTouch](https://autotouch.net) © Kent Krantz |
 
@@ -49,6 +49,23 @@
 
 ---
 
+## AutoTouch 8.0.11 (inputtext) — hybrid
+
+Для **8.0.11** нужен гибрид: бинарный патч **ATTweak** + **crackATT** (иначе после respring — Unlicensed и нет auto-launch).
+
+1. Скачай `.deb` с [Releases](https://github.com/smartmaster35rus-dev/autotouch-patch/releases) — тег **`8.0.11-v1-hybrid`**.
+2. На iPhone:
+
+```bash
+export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin
+dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v1-hybrid_iphoneos-arm64_patched.deb
+ldrestart
+```
+
+Подробнее: [v8.0.11_inputtext/REPORT_8.0.11.md](v8.0.11_inputtext/REPORT_8.0.11.md).
+
+---
+
 ## ⚡ Быстрая установка
 
 ### Способ 1 — одной командой (рекомендуется)
@@ -59,7 +76,7 @@
 curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patch/main/scripts/install.sh | bash
 ```
 
-Скрипт скачает `.deb`, установит пакет; **postinst** переподпишет dylib (`ldid`) и выполнит **`ldrestart`**.
+Скрипт поставит **ElleKit** (если ещё нет), скачает `.deb`, установит пакет; **postinst** переподпишет dylib (`ldid`) и выполнит **`ldrestart`**.
 
 ### Способ 2 — только патч (AutoTouch уже установлен)
 
@@ -71,9 +88,13 @@ curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patc
 
 ```text
 /var/jb/Library/MobileSubstrate/DynamicLibraries/
-├── crackATT.dylib
-└── crackATT.plist
+├── ATTweak.dylib          # штатный твик AutoTouch (2 bundle в plist — норма)
+├── ATTweak.plist
+├── crackATT.dylib         # наш патч
+└── crackATT.plist         # 3 bundle: backboardd, SpringBoard, me.autotouch.AutoTouch.ios8
 ```
+
+> Если в Filza видите **`ATTweak.plist` без AutoTouch** — это не ошибка. Третий bundle должен быть в **`crackATT.plist`**. Если **`crackATT.*` нет вообще** — установка `.deb` не дошла до конца (часто из‑за отсутствия ElleKit).
 
 ### Способ 3 — вручную
 
