@@ -264,12 +264,6 @@ static void crack_license_download_ok(LicenseViewController *self) {
 - (void)showDownloadUnsuccessfullyAlert:(id)reason {
     crack_license_download_ok(self);
 }
-- (void)loadLicense:(id)sender {
-    crack_license_download_ok(self);
-}
-- (IBAction)downloadLicense:(id)sender {
-    crack_license_download_ok(self);
-}
 - (void)showAlertFrom:(id)from message:(id)message {
     if (crack_is_license_text((NSString *)message))
         return;
