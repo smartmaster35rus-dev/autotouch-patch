@@ -53,6 +53,10 @@ static BOOL crack_is_license_text(NSString *text) {
             @"Failed to write license",
             @"Failed to remove the broken license",
             @"write license file",
+            @"Failed to connect to socket",
+            @"Failed to get running scripts",
+            @"socket server",
+            @"net.autotouch.ios",
         ];
     });
     for (NSString *needle in needles) {
@@ -206,6 +210,14 @@ static BOOL crack_vc_is_license_alert(UIViewController *vc) {
 %end
 
 %hook ATTweakClient
+- (id)getRunningScriptsError:(NSError **)error {
+    if (error)
+        *error = nil;
+    return @[];
+}
+- (void)loadRunningScripts {
+    return;
+}
 - (BOOL)downloadLicense:(NSError **)error {
     if (error)
         *error = nil;
@@ -330,5 +342,5 @@ static void crack_license_download_ok(LicenseViewController *self) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         crack_refresh_license_state();
     });
-    NSLog(@"[crackATT 8.0.11 v4.1 license-ui] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
+    NSLog(@"[crackATT 8.0.11 v4.2] loaded in %@", [[NSBundle mainBundle] bundleIdentifier]);
 }

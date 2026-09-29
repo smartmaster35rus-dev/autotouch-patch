@@ -105,8 +105,14 @@ def relax_ellekit_depends(extracted: Path) -> None:
             raise SystemExit("unexpected Depends line in control:\n" + text)
     else:
         text = text.replace(old, new, 1)
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.1-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.2-hybrid")
     text = text.replace("Version: 8.0.11\n", "Version: %s\n" % version, 1)
+    if "Provides:" not in text:
+        text = text.replace(
+            "Package: me.autotouch.autotouch.ios8.inputtext\n",
+            "Package: me.autotouch.autotouch.ios8.inputtext\nProvides: me.autotouch.autotouch.ios8\n",
+            1,
+        )
     control.write_text(text, encoding="utf-8", newline="\n")
 
 
@@ -128,7 +134,7 @@ def append_postinst(extracted: Path) -> None:
 
 
 def main() -> None:
-    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.1-hybrid")
+    version = os.environ.get("RELEASE_VERSION", "8.0.11-v4.2-hybrid")
     orig = default_orig_deb()
     crack = crack_dylib_path()
     tmp_patched = PATCH8011 / "ATTweak_patched.dylib"
