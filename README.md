@@ -53,14 +53,21 @@
 
 Для **8.0.11** нужен гибрид: бинарный патч **ATTweak** + **crackATT** (иначе после respring — Unlicensed и нет auto-launch).
 
-1. Скачай `.deb` с [Releases](https://github.com/smartmaster35rus-dev/autotouch-patch/releases) — тег **`8.0.11-v3-hybrid`** (armor: без модальных алертов после respring).
-2. На iPhone:
+1. Скачай `.deb` с [Releases](https://github.com/smartmaster35rus-dev/autotouch-patch/releases) — актуальный тег **`8.0.11-v4.2-hybrid`** (лицензия/UI, auto-launch, `Provides` для dpkg-log, socket-алерты в UI).
+2. На iPhone — одной командой или вручную:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/smartmaster35rus-dev/autotouch-patch/main/scripts/install_8011_hybrid.sh | bash
+```
 
 ```bash
 export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin
-dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v3-hybrid_iphoneos-arm64_patched.deb
+dpkg -i me.autotouch.autotouch.ios8.inputtext_8.0.11-v4.2-hybrid_iphoneos-arm64_patched.deb
 ldrestart
 ```
+
+Прямая ссылка на `.deb`:  
+https://github.com/smartmaster35rus-dev/autotouch-patch/releases/download/8.0.11-v4.2-hybrid/me.autotouch.autotouch.ios8.inputtext_8.0.11-v4.2-hybrid_iphoneos-arm64_patched.deb
 
 Подробнее: [v8.0.11_inputtext/REPORT_8.0.11.md](v8.0.11_inputtext/REPORT_8.0.11.md).
 
